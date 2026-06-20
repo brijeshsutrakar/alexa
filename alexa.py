@@ -1,60 +1,54 @@
 import streamlit as st
-import speech_recognition as sr
+import pandas as pd
 import datetime
-import wikipedia
-import pyjokes
+import random
 import os
 
-# Streamlit UI Setup
-st.title("🤖 Desktop Alexa Assistant")
-st.write("Click the button below to talk to Alexa!")
+# Streamlit Page Config
+st.set_page_config(page_title="Alexa Voice Assistant", layout="centered")
 
-listener = sr.Recognizer()
+st.title("🧠 Alexa Assistant (Streamlit Version)")
+st.caption("Text-based Simulation for Cloud Deployment")
 
-# Voice input function modified for Streamlit
-def take_command():
-    command = ""
-    try:
-        with sr.Microphone() as source:
-            st.info("Listening... Speak now...")
-            voice = listener.listen(source, timeout=5, phrase_time_limit=5)
-            st.success("Processing voice...")
-            command = listener.recognize_google(voice)
-            command = command.lower()
-            if 'alexa' in command:
-                command = command.replace('alexa', '')
-    except Exception as e:
-        st.warning("Could not hear or recognize your voice. Please try again.")
-    return command
+# CSV File check (Local path hata diya hai taaki server pe crash na ho)
+csv_filename = "alexa_data.csv"
 
-def run_alexa():
-    command = take_command()
-    if command:
-        st.write(f"**You said:** {command}")
+if os.path.exists(csv_filename):
+    df = pd.read_csv(csv_filename)
+    st.success("Dataset loaded successfully!")
+else:
+    st.warning(f"Please make sure '{csv_filename}' is uploaded in the same GitHub repository.")
+
+# Actions simulation instead of crashing modules
+def run_alexa_text(command):
+    command = command.lower()
+    
+    if 'time' in command:
+        current_time = datetime.datetime.now().strftime('%I:%M %p')
+        return f"Current time is {current_time}"
         
-        if 'play' in command:
-            song = command.replace('play', '')
-            st.success(f"Playing {song} (Simulated)")
-            # Web browser/YouTube server par direct open nahi hoga, isliye sirf text dikha rahe hain
-            
-        elif 'time' in command:
-            time = datetime.datetime.now().strftime('%I:%M %p')
-            st.info(f"Current time is {time}")
-            
-        elif 'who the heck is' in command:
-            person = command.replace('who the heck is', '')
-            info = wikipedia.summary(person, 1)
-            st.write(info)
-            
-        elif 'joke' in command:
-            joke = pyjokes.get_joke()
-            st.write(f"😂 {joke}")
-            
-        else:
-            st.write("Please say the command again.")
+    elif 'joke' in command:
+        jokes = [
+            "Why do programmers wear glasses? Because they can't C#!",
+            "Why did the computer go to the doctor? It had a virus!",
+            "Algorithms: Words used by programmers when they don't want to explain what they did."
+        ]
+        return random.choice(jokes)
+        
+    elif 'play' in command:
+        song = command.replace('play', '')
+        return f"Playing {song} on YouTube (Simulated)"
+        
+    else:
+        return "I can process this intent! (Voice & local paths are disabled on Cloud Server)."
 
-# Streamlit Trigger Button (Instead of While True loop)
-if st.button("🎙️ Start Alexa"):
-    run_alexa()
+# UI Controls (Text based so it never freezes)
+st.markdown("### 🎙️ Type your command below")
+user_input = st.text_input("What can I do for you?", placeholder="e.g., What is the time? or Tell me a joke")
 
-
+if st.button("Run Alexa"):
+    if user_input:
+        response = run_alexa_text(user_input)
+        st.info(f"🤖 **Alexa:** {response}")
+    else:
+        st.warning("Please enter a command first.")
